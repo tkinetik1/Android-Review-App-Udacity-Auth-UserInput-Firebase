@@ -28,6 +28,7 @@
         android:layout_toRightOf="@+id/restaurant_item_image"
         android:ellipsize="end"
         android:maxLines="1"
+        android:textStyle="italic"
         tools:text="Foo's Bar" />
 
     <me.zhanghai.android.materialratingbar.MaterialRatingBar

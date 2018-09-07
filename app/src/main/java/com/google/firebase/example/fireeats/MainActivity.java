@@ -35,7 +35,10 @@ import android.widget.Toast;
 import com.firebase.ui.auth.AuthUI;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.example.fireeats.adapter.RestaurantAdapter;
+import com.google.firebase.example.fireeats.model.Restaurant;
+import com.google.firebase.example.fireeats.util.RestaurantUtil;
 import com.google.firebase.example.fireeats.viewmodel.MainActivityViewModel;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -102,7 +105,13 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void initFirestore() {
-        // TODO(developer): Implement
+        // TODO(developer): Implement - First Task - initialize instance of FirebaseFirestore
+        mFirestore= FirebaseFirestore.getInstance();
+
+        // Get 50 top highest rated restaurants
+        mQuery = mFirestore.collection("restaurants")
+                .orderBy("avgRating", Query.Direction.DESCENDING)
+                .limit(LIMIT);
     }
 
     private void initRecyclerView() {
@@ -164,14 +173,52 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void onAddItemsClicked() {
-        // TODO(developer): Add random restaurants
-        showTodoToast();
+        // TODO(developer): Add random restaurants WITH LOOP AND REFERENCE TO THE RESTAURANT COLLECTION
+        //Get a reference to the restaurants collection
+        CollectionReference restaurants = mFirestore.collection("restaurants");
+
+        for (int i = 0; i < 10; i++) {
+            // Get a random Restaurant POJO (Plain Old Java Object)
+            Restaurant restaurant = RestaurantUtil.getRandom(this);
+
+            // Add a new document to the restaurants collection
+            restaurants.add(restaurant);
+        }
+
     }
 
     @Override
     public void onFilter(Filters filters) {
         // TODO(developer): Construct new query
-        showTodoToast();
+        Query query = mFirestore.collection("restaurants");
+
+        //Category (equality filter)
+        if (filters.hasCategory()) {
+            query = query.whereEqualTo("category", filters.getCategory());
+        }
+
+        //City (equality filter)
+        if (filters.hasCity()) {
+            query = query.whereEqualTo("city", filters.getCity());
+        }
+
+        //Price (equality filter)
+        if (filters.hasPrice()) {
+            query = query.whereEqualTo("price", filters.getPrice());
+        }
+
+        //Sort by (orderBy w/ direction)
+        if (filters.hasSortBy()) {
+            query = query.orderBy(filters.getSortBy(), filters.getSortDirection());
+        }
+
+        //Limit Items
+        query = query.limit(LIMIT);
+
+        //Update the query
+        mQuery = query;
+        mAdapter.setQuery(query);
+
 
         // Set header
         mCurrentSearchView.setText(Html.fromHtml(filters.getSearchDescription(this)));
